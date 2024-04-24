@@ -11,9 +11,9 @@ from stable_baselines3.ppo import CnnPolicy, MlpPolicy
 from cooking_zoo.environment.multi_agent_gym import GymCookingEnvironment
 
 
-def train(env_fn, steps: int = 10_000, seed: int | None = 0, **env_kwargs):
+def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     # Train a single model to play as each agent in an AEC environment
-    env = env_fn.parallel_env(**env_kwargs)
+    env = env_fn
 
     # Add black death wrapper so the number of agents stays constant
     # MarkovVectorEnv does not support environments with varying numbers of active agents unless black_death is set to True
@@ -53,9 +53,9 @@ def train(env_fn, steps: int = 10_000, seed: int | None = 0, **env_kwargs):
     env.close()
 
 
-def eval(env_fn, num_games: int = 100, render_mode: str | None = None, **env_kwargs):
+def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
     # Evaluate a trained agent vs a random agent
-    env = env_fn.env(render_mode=render_mode, **env_kwargs)
+    env = env_fn
 
     # Pre-process using SuperSuit
     visual_observation = not env.unwrapped.vector_state
@@ -114,6 +114,18 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None, **env_kwa
 
 
 if __name__ == "__main__":
+    num_agents = 2
+    max_steps = 400
+    render = False
+    obs_spaces = ["feature_vector", "feature_vector"]
+    action_scheme = "scheme3"
+    meta_file = "example"
+    level = "coexistence_test"
+    recipes = ["TomatoLettuceSalad", "CarrotBanana"]
+    end_condition_all_dishes = True
+    agent_visualization = ["robot", "human"]
+    reward_scheme = {"recipe_reward": 20, "max_time_penalty": -5, "recipe_penalty": -40, "recipe_node_reward": 0}
+
     env = GymCookingEnvironment(level=level, meta_file=meta_file, num_agents=num_agents,
                                 max_steps=max_steps, recipes=recipes, agent_visualization=agent_visualization,
                                 obs_spaces=obs_spaces, end_condition_all_dishes=end_condition_all_dishes,
@@ -123,10 +135,10 @@ if __name__ == "__main__":
     env_kwargs = dict(max_cycles=100, max_zombies=4, vector_state=True)
 
     # Train a model (takes ~5 minutes on a laptop CPU)
-    train(env_fn, steps=81_920, seed=0, **env_kwargs)
+    train(env, steps=81_920, seed=0)
 
     # Evaluate 10 games (takes ~10 seconds on a laptop CPU)
-    eval(env_fn, num_games=10, render_mode=None, **env_kwargs)
+    eval(env, num_games=10, render_mode=None)
 
     # Watch 2 games (takes ~10 seconds on a laptop CPU)
-    eval(env_fn, num_games=2, render_mode="human", **env_kwargs)
+    eval(env, num_games=2, render_mode="human")
