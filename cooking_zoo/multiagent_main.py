@@ -1,4 +1,4 @@
-from cooking_zoo.environment.multi_agent_gym import GymCookingEnvironment
+import gym
 
 num_agents = 2
 max_steps = 400
@@ -12,7 +12,7 @@ end_condition_all_dishes = True
 agent_visualization = ["robot", "human"]
 reward_scheme = {"recipe_reward": 20, "max_time_penalty": -5, "recipe_penalty": -40, "recipe_node_reward": 0}
 
-env = GymCookingEnvironment(level=level, meta_file=meta_file, num_agents=num_agents,
+env = gym.envs.make("cooking_zoo:cookingEnv-v1", level=level, meta_file=meta_file,
                     max_steps=max_steps, recipes=recipes, agent_visualization=agent_visualization,
                     obs_spaces=obs_spaces, end_condition_all_dishes=end_condition_all_dishes,
                     action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)

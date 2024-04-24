@@ -8,8 +8,8 @@ import supersuit as ss
 from stable_baselines3 import PPO
 from stable_baselines3.ppo import CnnPolicy, MlpPolicy
 
-from cooking_zoo.environment.multi_agent_gym import GymCookingEnvironment
-
+from cooking_zoo.environment.cooking_env import env
+from pettingzoo.utils.conversions import aec_to_parallel
 
 def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     # Train a single model to play as each agent in an AEC environment
@@ -20,12 +20,12 @@ def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     env = ss.black_death_v3(env)
 
     # Pre-process using SuperSuit
-    visual_observation = not env.unwrapped.vector_state
-    if visual_observation:
+    # visual_observation = not env.unwrapped.vector_state
+    # if visual_observation:
         # If the observation space is visual, reduce the color channels, resize from 512px to 84px, and apply frame stacking
-        env = ss.color_reduction_v0(env, mode="B")
-        env = ss.resize_v1(env, x_size=84, y_size=84)
-        env = ss.frame_stack_v1(env, 3)
+    #    env = ss.color_reduction_v0(env, mode="B")
+    #     env = ss.resize_v1(env, x_size=84, y_size=84)
+    #    env = ss.frame_stack_v1(env, 3)
 
     env.reset(seed=seed)
 
@@ -36,7 +36,7 @@ def train(env_fn, steps: int = 10_000, seed: int | None = 0):
 
     # Use a CNN policy if the observation space is visual
     model = PPO(
-        CnnPolicy if visual_observation else MlpPolicy,
+        MlpPolicy,
         env,
         verbose=3,
         batch_size=256,
@@ -58,12 +58,12 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
     env = env_fn
 
     # Pre-process using SuperSuit
-    visual_observation = not env.unwrapped.vector_state
-    if visual_observation:
+    # visual_observation = not env.unwrapped.vector_state
+    # if visual_observation:
         # If the observation space is visual, reduce the color channels, resize from 512px to 84px, and apply frame stacking
-        env = ss.color_reduction_v0(env, mode="B")
-        env = ss.resize_v1(env, x_size=84, y_size=84)
-        env = ss.frame_stack_v1(env, 3)
+    #   env = ss.color_reduction_v0(env, mode="B")
+    #   env = ss.resize_v1(env, x_size=84, y_size=84)
+    #   env = ss.frame_stack_v1(env, 3)
 
     print(
         f"\nStarting evaluation on {str(env.metadata['name'])} (num_games={num_games}, render_mode={render_mode})"
@@ -126,14 +126,13 @@ if __name__ == "__main__":
     agent_visualization = ["robot", "human"]
     reward_scheme = {"recipe_reward": 20, "max_time_penalty": -5, "recipe_penalty": -40, "recipe_node_reward": 0}
 
-    env = GymCookingEnvironment(level=level, meta_file=meta_file, num_agents=num_agents,
+    env = env(level=level, meta_file=meta_file, num_agents=num_agents,
                                 max_steps=max_steps, recipes=recipes, agent_visualization=agent_visualization,
                                 obs_spaces=obs_spaces, end_condition_all_dishes=end_condition_all_dishes,
                                 action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)
 
     # Set vector_state to false in order to use visual observations (significantly longer training time)
-    env_kwargs = dict(max_cycles=100, max_zombies=4, vector_state=True)
-
+    env = aec_to_parallel(env)
     # Train a model (takes ~5 minutes on a laptop CPU)
     train(env, steps=81_920, seed=0)
 
