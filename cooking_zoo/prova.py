@@ -87,7 +87,7 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
         env.reset()
         env.action_space(env.possible_agents[0]).seed(i)
 
-        for agent in env.get_agent_names():
+        for agent in env.agent_iter():
             obs, reward, termination, truncation, info = env.last()
 
             for a in env.agents:
