@@ -13,7 +13,7 @@ from pettingzoo.utils.conversions import aec_to_parallel
 
 def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     # Train a single model to play as each agent in an AEC environment
-    env = env_fn
+    env = aec_to_parallel(env_fn)
 
     # Add black death wrapper so the number of agents stays constant
     # MarkovVectorEnv does not support environments with varying numbers of active agents unless black_death is set to True
@@ -27,7 +27,7 @@ def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     #     env = ss.resize_v1(env, x_size=84, y_size=84)
     #    env = ss.frame_stack_v1(env, 3)
 
-    env.reset(seed=seed)
+    env.reset()
 
     print(f"Starting training on {str(env.metadata['name'])}.")
 
@@ -84,10 +84,10 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
     # Note: we evaluate here using an AEC environments, to allow for easy A/B testing against random policies
     # For example, we can see here that using a random agent for archer_0 results in less points than the trained agent
     for i in range(num_games):
-        env.reset(seed=i)
+        env.reset()
         env.action_space(env.possible_agents[0]).seed(i)
 
-        for agent in env.agent_iter():
+        for agent in env.get_agent_names():
             obs, reward, termination, truncation, info = env.last()
 
             for a in env.agents:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     max_steps = 400
     render = False
     obs_spaces = ["feature_vector", "feature_vector"]
-    action_scheme = "scheme3"
+    action_scheme = "scheme1"
     meta_file = "example"
     level = "coexistence_test"
     recipes = ["TomatoLettuceSalad", "CarrotBanana"]
@@ -132,7 +132,7 @@ if __name__ == "__main__":
                                 action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)
 
     # Set vector_state to false in order to use visual observations (significantly longer training time)
-    env = aec_to_parallel(env)
+    #env = aec_to_parallel(env)
     # Train a model (takes ~5 minutes on a laptop CPU)
     train(env, steps=81_920, seed=0)
 
