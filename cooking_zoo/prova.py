@@ -3,9 +3,10 @@ from __future__ import annotations
 import glob
 import os
 import time
+import wandb
 
 import supersuit as ss
-from stable_baselines3 import PPO
+from cooking_zoo.environment.ppo import PPO
 from stable_baselines3.ppo import CnnPolicy, MlpPolicy
 
 from cooking_zoo.environment.cooking_env import env
@@ -79,9 +80,8 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
 
     model = PPO.load(latest_policy)
 
-    rews = {agent: 0 for agent in env.possible_agents}
     rewards = {agent: 0 for agent in env.possible_agents}
-
+    acc_reward = 0
     # Note: we evaluate here using an AEC environments, to allow for easy A/B testing against random policies
     # For example, we can see here that using a random agent for archer_0 results in less points than the trained agent
     for i in range(num_games):
@@ -91,36 +91,44 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
         for agent in env.agent_iter():
             obs, reward, termination, truncation, info = env.last()
 
-            rewards[agent] += reward
             for a in env.agents:
-                rews[a] += env.rewards[a]
+                rewards[a] += env.rewards[a]
 
             if termination or truncation:
                 break
             else:
                 act = model.predict(obs)[0]
                 env.step(act)
+        wandb.log({"eval/accumulated_reward": sum(rewards.values()), "eval/game_reward": sum(rewards.values()) - acc_reward, "eval/num_games": i})
+        acc_reward = sum(rewards.values())
     env.close()
 
-    avg_reward = sum(rewards.values()) / len(rewards.values())
+    avg_reward = acc_reward / len(rewards.values())
     avg_reward_per_agent = {
         agent: rewards[agent] / num_games for agent in env.possible_agents
     }
     print(f"Avg reward: {avg_reward}")
     print("Avg reward per agent, per game: ", avg_reward_per_agent)
     print("Full rewards: ", rewards)
-    print("-------------------------------------------------------------------------------------")
-    avg_rews = sum(rews.values()) / len(rews.values())
-    avg_rews_per_agent = {
-        agent: rews[agent] / num_games for agent in env.possible_agents
-    }
-    print(f"Avg rewsd: {avg_rews}")
-    print("Avg rews per agent, per game: ", avg_rews_per_agent)
-    print("Full rews: ", rews)
+
     return avg_reward
 
 
 if __name__ == "__main__":
+    wandb.login(key="5ca2b33324642ace64138f1937fd78084ba55370")
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="cookingZoo",
+
+        # track hyperparameters and run metadata
+        config={
+            "learning_rate": 0.0003,
+            "architecture": "MLP",
+            "dataset": "CookingZoo",
+            "epochs": 10,
+        }
+    )
+    wandb.run.name = "CookingZoo-without-communication"
     num_agents = 2
     max_steps = 400
     render = False
@@ -128,7 +136,7 @@ if __name__ == "__main__":
     action_scheme = "scheme1"
     meta_file = "example"
     level = "coexistence_test"
-    recipes = ["TomatoSalad", "CarrotBanana"]
+    recipes = ["TomatoSalad", "TomatoSalad"]
     end_condition_all_dishes = True
     agent_visualization = ["robot", "human"]
     reward_scheme = {"recipe_reward": 40, "max_time_penalty": -5, "recipe_penalty": -20, "recipe_node_reward": 0}
@@ -138,13 +146,11 @@ if __name__ == "__main__":
                                 obs_spaces=obs_spaces, end_condition_all_dishes=end_condition_all_dishes,
                                 action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)
 
-    # Set vector_state to false in order to use visual observations (significantly longer training time)
-    #env = aec_to_parallel(env)
-    # Train a model (takes ~5 minutes on a laptop CPU)
-    train(env, steps=1000000, seed=0)
+    # Train a model
+    train(env, steps=16000000, seed=0)
 
-    # Evaluate 10 games (takes ~10 seconds on a laptop CPU)
+    # Evaluate 100 games
     eval(env, num_games=100, render_mode=None)
 
-    # Watch 2 games (takes ~10 seconds on a laptop CPU)
-    eval(env, num_games=20, render_mode="human")
+
+    wandb.finish()

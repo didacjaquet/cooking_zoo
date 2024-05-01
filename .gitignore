@@ -133,3 +133,5 @@ venv.bak/
 .mypy_cache/
 
 token.txt
+/cooking_zoo/wandb/
+/cooking_zoo/runs/

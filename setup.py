@@ -12,6 +12,9 @@ setup(name='cooking_zoo',
             'pygame',
             'pettingzoo>=1.24',
             'Pillow',
-            'Gymnasium>=0.26'
+            'Gymnasium>=0.26',
+            'supersuit',
+            'stable_baselines3[extra]',
+            'wandb'
       ]
       )

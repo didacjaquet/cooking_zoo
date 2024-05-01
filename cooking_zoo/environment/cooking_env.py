@@ -64,6 +64,7 @@ class CookingEnvironment(AECEnv):
                  reward_scheme=None, agent_respawn_rate=0.0, grace_period=20, agent_despawn_rate=0.0):
         super().__init__()
 
+        #self.coms = []
         obs_spaces = obs_spaces or ["feature_vector"]
         self.allowed_obs_spaces = ["symbolic", "full", "feature_vector"]
         self.action_scheme = action_scheme
@@ -123,6 +124,7 @@ class CookingEnvironment(AECEnv):
                              'goal_vector': gym.spaces.MultiBinary(self.num_goals)}
         self.feature_obs_space = gym.spaces.Box(low=-1, high=1,
                                                 shape=(self.feature_vector_representation_length,))
+                                                #shape=(self.feature_vector_representation_length + len(self.coms),))
         obs_space_dict = {"full": numeric_obs_space,
                           "feature_vector": self.feature_obs_space,
                           "symbolic": {}}
@@ -369,6 +371,7 @@ class CookingEnvironment(AECEnv):
                 feature_vector.extend(features)
                 current_num += 1
             feature_vector.extend([0] * (num - current_num) * cls.feature_vector_length())
+        #feature_vector.extend(self.coms)
         new_vector = np.array(feature_vector)
         return new_vector
 
