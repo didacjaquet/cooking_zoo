@@ -180,7 +180,7 @@ class CookingEnvironment(AECEnv):
         options = options or {"full_reset": True}
         # self.world = CookingWorld(self.action_scheme_class)
         self.t = 0
-        self.coms = [0]
+        self.coms = [0, 0, 0, 0, 0]
         # For tracking data during an episode.
         self.termination_info = ""
 

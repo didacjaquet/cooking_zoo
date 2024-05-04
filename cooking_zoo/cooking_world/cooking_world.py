@@ -96,7 +96,7 @@ class CookingWorld:
         elif self.action_scheme == ActionScheme2:
             action_scheme2.perform_agent_actions(self, env, agents, actions)
         elif self.action_scheme == ActionScheme3:
-            action_scheme3.perform_agent_actions(self, agents, actions)
+            action_scheme3.perform_agent_actions(self, env, agents, actions)
         else:
             raise Exception("No valid Action Scheme Found")
 
