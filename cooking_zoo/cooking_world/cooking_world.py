@@ -7,16 +7,15 @@ import numpy as np
 
 
 class CookingWorld:
-
     LEFT = 1
     RIGHT = 2
     DOWN = 3
     UP = 4
 
-    agent_turn_map = {(LEFT, ActionScheme2.TURN_LEFT): DOWN, (RIGHT, ActionScheme2.TURN_LEFT): UP,
-                      (UP, ActionScheme2.TURN_LEFT): LEFT, (DOWN, ActionScheme2.TURN_LEFT): RIGHT,
-                      (RIGHT, ActionScheme2.TURN_RIGHT): DOWN, (LEFT, ActionScheme2.TURN_RIGHT): UP,
-                      (UP, ActionScheme2.TURN_RIGHT): RIGHT, (DOWN, ActionScheme2.TURN_RIGHT): LEFT}
+    # agent_turn_map = {(LEFT, ActionScheme2.TURN_LEFT): DOWN, (RIGHT, ActionScheme2.TURN_LEFT): UP,
+    #                  (UP, ActionScheme2.TURN_LEFT): LEFT, (DOWN, ActionScheme2.TURN_LEFT): RIGHT,
+    #                  (RIGHT, ActionScheme2.TURN_RIGHT): DOWN, (LEFT, ActionScheme2.TURN_RIGHT): UP,
+    #                  (UP, ActionScheme2.TURN_RIGHT): RIGHT, (DOWN, ActionScheme2.TURN_RIGHT): LEFT}
 
     COLORS = ['blue', 'magenta', 'yellow', 'green']
 
@@ -91,21 +90,21 @@ class CookingWorld:
         for obj in self.abstract_index[LinkedObject]:
             obj.process_linked_objects()
 
-    def perform_agent_actions(self, agents, actions):
+    def perform_agent_actions(self, env, agents, actions):
         if self.action_scheme == ActionScheme1:
             action_scheme1.perform_agent_actions(self, agents, actions)
         elif self.action_scheme == ActionScheme2:
-            action_scheme2.perform_agent_actions(self, agents, actions)
+            action_scheme2.perform_agent_actions(self, env, agents, actions)
         elif self.action_scheme == ActionScheme3:
             action_scheme3.perform_agent_actions(self, agents, actions)
         else:
             raise Exception("No valid Action Scheme Found")
 
-    def world_step(self, actions):
+    def world_step(self, env, actions):
         agents = self.compute_active_agents()
         self.status_changed = [False] * len(self.agents)
         assert len(agents) == len(actions)
-        self.perform_agent_actions(agents, actions)
+        self.perform_agent_actions(env, agents, actions)
         self.progress_world()
         self.resolve_linked_interactions()
         self.handle_agent_spawn()
@@ -214,7 +213,7 @@ class CookingWorld:
             target_locations.append(end_location)
             walkable.append(target_walkable)
         for idx, (action, target_location, target_walkable) in enumerate(zip(actions, target_locations, walkable)):
-            if target_location in target_locations[:idx] + target_locations[idx+1:] and target_walkable:
+            if target_location in target_locations[:idx] + target_locations[idx + 1:] and target_walkable:
                 collision_actions.append(0)
             else:
                 collision_actions.append(action)
@@ -271,7 +270,7 @@ class CookingWorld:
             else:
                 # active = self.active_agents[i]
                 if self.active_agents.count(True) > 1 and self.active_agents[i] \
-                   and np.random.random() < self.agent_despawn_rate:
+                        and np.random.random() < self.agent_despawn_rate:
                     self.despawn_agent(i)
                 elif not self.active_agents[i] and np.random.random() < self.agent_respawn_rate:
                     self.respawn_agent(i)

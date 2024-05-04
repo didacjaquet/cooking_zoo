@@ -170,7 +170,6 @@ class OnPolicyAlgorithm(BaseAlgorithm):
 
         callback.on_rollout_start()
         reward_count = 0
-        reward_count2 = 0
         while n_steps < n_rollout_steps:
             if self.use_sde and self.sde_sample_freq > 0 and n_steps % self.sde_sample_freq == 0:
                 # Sample a new noise matrix
@@ -196,7 +195,9 @@ class OnPolicyAlgorithm(BaseAlgorithm):
                     clipped_actions = np.clip(actions, self.action_space.low, self.action_space.high)
 
             new_obs, rewards, dones, infos = env.step(clipped_actions)
+
             reward_count += rewards.mean()
+
             self.num_timesteps += env.num_envs
 
             # Give access to local variables
@@ -234,17 +235,17 @@ class OnPolicyAlgorithm(BaseAlgorithm):
             )
             self._last_obs = new_obs  # type: ignore[assignment]
             self._last_episode_starts = dones
-            reward_count2 += rewards.mean()
         with th.no_grad():
             # Compute value for the last timestep
             values = self.policy.predict_values(obs_as_tensor(new_obs, self.device))  # type: ignore[arg-type]
 
         rollout_buffer.compute_returns_and_advantage(last_values=values, dones=dones)
-
         callback.update_locals(locals())
 
+        wandb.log({"train/ep_reward_count": reward_count.mean()})
+
         callback.on_rollout_end()
-        wandb.log({"train/ep_reward_fin": rewards.mean(), "train/ep_reward_count": reward_count.mean(),"train/ep_reward_count2": reward_count2.mean(),})
+
         return True
 
     def train(self) -> None:
@@ -269,11 +270,18 @@ class OnPolicyAlgorithm(BaseAlgorithm):
         if len(self.ep_info_buffer) > 0 and len(self.ep_info_buffer[0]) > 0:
             self.logger.record("rollout/ep_rew_mean", safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]))
             self.logger.record("rollout/ep_len_mean", safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]))
+            wandb.log({
+                "rollout/ep_rew_mean": safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]),
+                "rollout/ep_len_mean": safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer])
+            })
         self.logger.record("time/fps", fps)
         self.logger.record("time/time_elapsed", int(time_elapsed), exclude="tensorboard")
         self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
         if len(self.ep_success_buffer) > 0:
             self.logger.record("rollout/success_rate", safe_mean(self.ep_success_buffer))
+            wandb.log({
+                "rollout/success_rate": safe_mean(self.ep_success_buffer)
+            })
         self.logger.dump(step=self.num_timesteps)
         wandb.log({
             "time/iterations": iteration,

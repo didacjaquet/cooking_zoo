@@ -16,7 +16,6 @@ from gymnasium.utils import seeding
 from cooking_zoo.environment.game.graphic_pipeline import GraphicPipeline
 import gymnasium as gym
 
-
 CollisionRepr = namedtuple("CollisionRepr", "time agent_names agent_locations")
 COLORS = ['blue', 'magenta', 'yellow', 'green']
 
@@ -64,7 +63,7 @@ class CookingEnvironment(AECEnv):
                  reward_scheme=None, agent_respawn_rate=0.0, grace_period=20, agent_despawn_rate=0.0):
         super().__init__()
 
-        #self.coms = []
+        self.coms = [0, 0, 0, 0, 0]
         obs_spaces = obs_spaces or ["feature_vector"]
         self.allowed_obs_spaces = ["symbolic", "full", "feature_vector"]
         self.action_scheme = action_scheme
@@ -123,8 +122,8 @@ class CookingEnvironment(AECEnv):
                                                               shape=(2,)),
                              'goal_vector': gym.spaces.MultiBinary(self.num_goals)}
         self.feature_obs_space = gym.spaces.Box(low=-1, high=1,
-                                                shape=(self.feature_vector_representation_length,))
-                                                #shape=(self.feature_vector_representation_length + len(self.coms),))
+                                                # shape=(self.feature_vector_representation_length,))
+                                                shape=(self.feature_vector_representation_length + len(self.coms),))
         obs_space_dict = {"full": numeric_obs_space,
                           "feature_vector": self.feature_obs_space,
                           "symbolic": {}}
@@ -181,14 +180,14 @@ class CookingEnvironment(AECEnv):
         options = options or {"full_reset": True}
         # self.world = CookingWorld(self.action_scheme_class)
         self.t = 0
-
+        self.coms = [0]
         # For tracking data during an episode.
         self.termination_info = ""
 
         self.agents = self.possible_agents[:]
         self._agent_selector.reinit(self.agents)
         self.agent_selection = self._agent_selector.next()
-        
+
         # Load world & distances.
         if options["full_reset"]:
             self.world = CookingWorld(self.action_scheme_class, self.meta_file,
@@ -245,7 +244,7 @@ class CookingEnvironment(AECEnv):
     def accumulated_step(self, actions):
         self.t += 1
         active_agents_start = self.world.active_agents[:]
-        self.world.world_step(actions)
+        self.world.world_step(self, actions)
         dones, rewards, goals, infos, truncations = self.compute_rewards(active_agents_start, actions)
         info = {"t": self.t, "termination_info": self.termination_info}
 
@@ -371,7 +370,7 @@ class CookingEnvironment(AECEnv):
                 feature_vector.extend(features)
                 current_num += 1
             feature_vector.extend([0] * (num - current_num) * cls.feature_vector_length())
-        #feature_vector.extend(self.coms)
+        feature_vector.extend(self.coms)
         new_vector = np.array(feature_vector)
         return new_vector
 
@@ -386,3 +385,6 @@ class CookingEnvironment(AECEnv):
 
     def screenshot(self, path="screenshot.png"):
         self.graphic_pipeline.save_image(path)
+
+    def set_communication(self, communication_pos, communication_value):
+        self.coms[communication_pos] = communication_value

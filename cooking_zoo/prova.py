@@ -39,7 +39,7 @@ def train(env_fn, steps: int = 10_000, seed: int | None = 0):
     model = PPO(
         MlpPolicy,
         env,
-        verbose=0,
+        verbose=3,
         batch_size=256,
     )
 
@@ -99,11 +99,13 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
             else:
                 act = model.predict(obs)[0]
                 env.step(act)
-        wandb.log({"eval/accumulated_reward": sum(rewards.values()), "eval/game_reward": sum(rewards.values()) - acc_reward, "eval/num_games": i})
+        wandb.log(
+            {"eval/accumulated_reward": sum(rewards.values()), "eval/game_reward": sum(rewards.values()) - acc_reward,
+             "eval/num_games": i})
         acc_reward = sum(rewards.values())
     env.close()
 
-    avg_reward = acc_reward / len(rewards.values())
+    avg_reward = acc_reward / num_games
     avg_reward_per_agent = {
         agent: rewards[agent] / num_games for agent in env.possible_agents
     }
@@ -115,7 +117,7 @@ def eval(env_fn, num_games: int = 100, render_mode: str | None = None):
 
 
 if __name__ == "__main__":
-    wandb.login(key="5ca2b33324642ace64138f1937fd78084ba55370")
+    #wandb.login(key="5ca2b33324642ace64138f1937fd78084ba55370")
     wandb.init(
         # set the wandb project where this run will be logged
         project="cookingZoo",
@@ -129,14 +131,15 @@ if __name__ == "__main__":
         }
     )
     wandb.run.name = "CookingZoo-without-communication"
+
     num_agents = 2
     max_steps = 400
     render = False
     obs_spaces = ["feature_vector", "feature_vector"]
-    action_scheme = "scheme1"
+    action_scheme = "scheme2"
     meta_file = "example"
     level = "coexistence_test"
-    recipes = ["TomatoSalad", "TomatoSalad"]
+    recipes = ["TomatoSalad", "CarrotBanana"]
     end_condition_all_dishes = True
     agent_visualization = ["robot", "human"]
     reward_scheme = {"recipe_reward": 40, "max_time_penalty": -5, "recipe_penalty": -20, "recipe_node_reward": 0}
@@ -147,10 +150,11 @@ if __name__ == "__main__":
                                 action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)
 
     # Train a model
-    train(env, steps=16000000, seed=0)
+    train(env, steps=65000000, seed=0)
 
     # Evaluate 100 games
     eval(env, num_games=100, render_mode=None)
 
-
     wandb.finish()
+
+
