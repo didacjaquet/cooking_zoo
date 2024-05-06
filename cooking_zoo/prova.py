@@ -130,13 +130,13 @@ if __name__ == "__main__":
             "epochs": 10,
         }
     )
-    wandb.run.name = "CookingZoo-vector-communication"
+    wandb.run.name = "CookingZoo-without-communication-forced-coop"
 
     num_agents = 2
     max_steps = 400
     render = False
     obs_spaces = ["feature_vector", "feature_vector"]
-    action_scheme = "scheme3"
+    action_scheme = "scheme2"
     meta_file = "example"
     level = "coexistence_test"
     recipes = ["TomatoSalad", "CarrotBanana"]
@@ -150,7 +150,7 @@ if __name__ == "__main__":
                                 action_scheme=action_scheme, render=render, reward_scheme=reward_scheme)
 
     # Train a model
-    train(env, steps=18000000, seed=0)
+    train(env, steps=65000000, seed=0)
 
     # Evaluate 100 games
     eval(env, num_games=100, render_mode=None)

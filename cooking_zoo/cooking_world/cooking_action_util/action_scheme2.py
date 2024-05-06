@@ -1,6 +1,7 @@
 from cooking_zoo.cooking_world.world_objects import *
 import wandb
 
+
 def perform_agent_actions(world, env, agents, actions):
     for agent, action in zip(agents, actions):
         agent.interacts_with = []
@@ -21,6 +22,16 @@ def perform_agent_action(world, env, agent, action):
     if action in world.action_scheme.COMMUNICATE_ACTIONS:
         resolve_communication(world, env, action)
 
+
+def resolve_communication(world, env, action):
+    if action == world.action_scheme.COMMUNICATE_ZERO:
+        env.set_communication(0, 0)
+        wandb.log({"coms/value": 0})
+    elif action == world.action_scheme.COMMUNICATE_ONE:
+        env.set_communication(0, 1)
+        wandb.log({"coms/value": 1})
+
+
 def resolve_walking_action(world, agent, action):
     target_location = world.get_target_location(agent, action)
     if world.square_walkable(target_location):
@@ -39,12 +50,3 @@ def resolve_interaction(world, agent, action):
         world.resolve_interaction_pick_up_special(agent)
     elif action == world.action_scheme.EXECUTE_ACTION:
         world.resolve_execute_action(agent)
-
-
-def resolve_communication(world, env, action):
-    if action == world.action_scheme.COMMUNICATE_ZERO:
-        env.set_communication(0, 0)
-        wandb.log({"coms/value": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE:
-        env.set_communication(0, 1)
-        wandb.log({"coms/value": 1})
