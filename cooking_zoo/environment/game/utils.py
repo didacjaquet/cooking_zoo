@@ -53,13 +53,7 @@ KeyToTuple_Scheme3_human1 = {
     pygame.K_q: ActionScheme3.COMMUNICATE_ZERO_0,
     pygame.K_w: ActionScheme3.COMMUNICATE_ONE_0,
     pygame.K_e: ActionScheme3.COMMUNICATE_ZERO_1,
-    pygame.K_r: ActionScheme3.COMMUNICATE_ONE_1,
-    pygame.K_t: ActionScheme3.COMMUNICATE_ZERO_2,
-    pygame.K_y: ActionScheme3.COMMUNICATE_ONE_2,
-    pygame.K_u: ActionScheme3.COMMUNICATE_ZERO_3,
-    pygame.K_i: ActionScheme3.COMMUNICATE_ONE_3,
-    pygame.K_o: ActionScheme3.COMMUNICATE_ZERO_4,
-    pygame.K_p: ActionScheme3.COMMUNICATE_ONE_4,
+    pygame.K_r: ActionScheme3.COMMUNICATE_ONE_1
 }
 KeyToTuple_human2 = {
     pygame.K_w: (0, -1),

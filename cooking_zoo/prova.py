@@ -136,7 +136,7 @@ if __name__ == "__main__":
     max_steps = 400
     render = False
     obs_spaces = ["feature_vector", "feature_vector"]
-    action_scheme = "scheme2"
+    action_scheme = "scheme3"
     meta_file = "example"
     level = "coexistence_test"
     recipes = ["TomatoSalad", "CarrotBanana"]

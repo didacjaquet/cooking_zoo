@@ -23,6 +23,22 @@ def perform_agent_action(world, env, agent, action):
         resolve_communication(world, env, action)
 
 
+def resolve_communication(world, env, action):
+    if action == world.action_scheme.COMMUNICATE_ZERO_0:
+        env.set_communication(0, 0)
+        wandb.log({"coms/value_0": 0})
+    elif action == world.action_scheme.COMMUNICATE_ONE_0:
+        env.set_communication(0, 1)
+        wandb.log({"coms/value_0": 1})
+    elif action == world.action_scheme.COMMUNICATE_ZERO_1:
+        env.set_communication(1, 0)
+        wandb.log({"coms/value_1": 0})
+    elif action == world.action_scheme.COMMUNICATE_ONE_1:
+        env.set_communication(1, 1)
+        wandb.log({"coms/value_1": 1})
+
+
+
 def resolve_walking_action(world, agent, action):
     target_location = world.get_target_location(agent, action)
     if world.square_walkable(target_location):
@@ -41,36 +57,3 @@ def resolve_interaction(world, agent, action):
         world.resolve_interaction_pick_up_special(agent)
     elif action == world.action_scheme.EXECUTE_ACTION:
         world.resolve_execute_action(agent)
-
-
-def resolve_communication(world, env, action):
-    if action == world.action_scheme.COMMUNICATE_ZERO_0:
-        env.set_communication(0, 0)
-        wandb.log({"coms/value_0": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE_0:
-        env.set_communication(0, 1)
-        wandb.log({"coms/value_0": 1})
-    elif action == world.action_scheme.COMMUNICATE_ZERO_1:
-        env.set_communication(1, 0)
-        wandb.log({"coms/value_1": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE_1:
-        env.set_communication(1, 1)
-        wandb.log({"coms/value_1": 1})
-    elif action == world.action_scheme.COMMUNICATE_ZERO_2:
-        env.set_communication(2, 0)
-        wandb.log({"coms/value_2": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE_2:
-        env.set_communication(2, 1)
-        wandb.log({"coms/value_2": 1})
-    elif action == world.action_scheme.COMMUNICATE_ZERO_3:
-        env.set_communication(3, 0)
-        wandb.log({"coms/value_3": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE_3:
-        env.set_communication(3, 1)
-        wandb.log({"coms/value_3": 1})
-    elif action == world.action_scheme.COMMUNICATE_ZERO_4:
-        env.set_communication(4, 0)
-        wandb.log({"coms/value_4": 0})
-    elif action == world.action_scheme.COMMUNICATE_ONE_4:
-        env.set_communication(4, 1)
-        wandb.log({"coms/value_4": 1})
